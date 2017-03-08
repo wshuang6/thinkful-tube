@@ -16,15 +16,23 @@ function getData(searchTerm, callback){
 }
 
 function searchResultsRender (data) {
-	data.items.forEach(function(data2){
-		console.log(data2.snippet.thumbnails.high.url);
-	});
+  let stringHTML = "";
+  if (data.items.length!=0){
+    data.items.forEach(function(data2){
+      stringHTML+=`<img src="${data2.snippet.thumbnails.high.url}" /><br/>`;
+    });
+
+    $('.search-results').html(stringHTML);
+	}
+  console.log(stringHTML);
 	//data.Search.forEach(function(item) {console.log(item)});;
 }
 
 getData("logan", searchResultsRender);
 //function to display the data retrieved.
 // this function should output html with the data retrieved.
+
+
 
 
 
