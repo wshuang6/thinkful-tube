@@ -4,7 +4,7 @@
 const SEARCHURL = "https://www.googleapis.com/youtube/v3/search";
 const TUBEURL = "https://www.youtube.com/watch?v=";
 const CHANNELURL = "https://www.youtube.com/channel/";
-
+const EMBEDURL = "https://www.youtube.com/embed/";
 var state = {
   pageIndex:1,
   userLastQuery:'',
@@ -28,12 +28,14 @@ function getData(searchTerm, callback, prevNext){
 function searchResultsRender (data) {
   state.previousToken = data.prevPageToken;
   state.nextToken = data.nextPageToken;
+  console.log(data);
   let stringHTML = `This is results page ${state.pageIndex}`;
   if (data.items.length > 0){
     data.items.forEach(function(data2){
-      stringHTML+=`<div class="video-container"><p>Title: ${data2.snippet.title}</p><a href="${CHANNELURL}${data2.snippet.channelId}"><p>Channel: ${data2.snippet.channelTitle}</p></a><a href="${TUBEURL}${data2.id.videoId}"><img src="${data2.snippet.thumbnails.high.url}" width="250px"/></a></div>`;
+      stringHTML+=`<div class="video-container"><p>Title: ${data2.snippet.title}</p><a href="${CHANNELURL}${data2.snippet.channelId}"><p>Channel: ${data2.snippet.channelTitle}</p></a><a href="#<--!${TUBEURL}${data2.id.videoId}-->"><img id="${data2.id.videoId}" src="${data2.snippet.thumbnails.high.url}" width="250px"/></a></div>`;
     });
   }
+  // data-videoId = 
   else {
   	stringHTML+='No results found';
   }
@@ -60,7 +62,6 @@ $(".search-input-form").submit(function(event) {
   } else {
     alert('Enter a Search');
   }
-
 });
 
 $(".prev-page").click(function(event) {
@@ -72,10 +73,28 @@ $(".prev-page").click(function(event) {
   }
 
 });
+
 $(".next-page").click(function(event){
 	state.pageIndex++;
 	getData(getLastQuery(state), searchResultsRender, state.nextToken);
   console.log(state.nextToken);
 });
 
+$(".search-results").on("click", "img", (function(event){
+	var vidId = event.target.id;
+	$("#video-embed").html(`<iframe width="560" height="315" src="${EMBEDURL}${vidId}" frameborder="0" allowfullscreen></iframe>`);
+	$("#lightbox").css("display", "flex");
+}));
+
+$("#lightbox").click(function(event){
+	$("#lightbox").css("display", "none");
+	$("video-embed").empty();
+	$("iframe").each(function() { 
+    var src= $(this).attr('src');
+    $(this).attr('src',src);  
+	});
+});
+
+
+//EMBED CODE: 
 //event listeners
