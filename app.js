@@ -5,8 +5,13 @@ const SEARCHURL = "https://www.googleapis.com/youtube/v3/search";
 const TUBEURL = "https://www.youtube.com/watch?v=";
 const CHANNELURL = "https://www.youtube.com/channel/";
 
-var pageIndex=1;
-var userLastQuery = [];
+var state = {
+  pageIndex:1,
+  userLastQuery:'',
+  previousToken:'',
+  nextToken:''
+}
+
 //set query into an object to getData
 
 function getData(searchTerm, callback, prevNext){
@@ -21,10 +26,12 @@ function getData(searchTerm, callback, prevNext){
 }
 
 function searchResultsRender (data) {
-  let stringHTML = `This is results page ${pageIndex}`;
+  state.previousToken = data.prevPageToken;
+  state.nextToken = data.nextPageToken;
+  let stringHTML = `This is results page ${state.pageIndex}`;
   if (data.items.length > 0){
     data.items.forEach(function(data2){
-      stringHTML+=`<p>Title: ${data2.snippet.title}</p><a href="${CHANNELURL}${data2.snippet.channelId}"><p>Channel: ${data2.snippet.channelTitle}</p></a><a href="${TUBEURL}${data2.id.videoId}"><img src="${data2.snippet.thumbnails.high.url}" /></a><br/>`;
+      stringHTML+=`<div class="video-container"><p>Title: ${data2.snippet.title}</p><a href="${CHANNELURL}${data2.snippet.channelId}"><p>Channel: ${data2.snippet.channelTitle}</p></a><a href="${TUBEURL}${data2.id.videoId}"><img src="${data2.snippet.thumbnails.high.url}" width="250px"/></a></div>`;
     });
   }
   else {
@@ -39,24 +46,36 @@ function searchResultsRender (data) {
 //getData("logan", searchResultsRender);
 //function to display the data retrieved.
 // this function should output html with the data retrieved.
-
+function getLastQuery(state){
+  return state.userLastQuery;
+}
 $(".search-input-form").submit(function(event) {
 	event.preventDefault();
-	pageIndex = 1;
+	state.pageIndex = 1;
 	var userQuery = $(".search-input").val();
-	userLastQuery.pop();
-	userLastQuery.push(userQuery);
-	getData(userQuery, searchResultsRender);
-	this.reset();
+  if (/\S/.test(userQuery)) {
+    state.userLastQuery = userQuery;
+    getData(userQuery, searchResultsRender);
+    this.reset();
+  } else {
+    alert('Enter a Search');
+  }
+
 });
 
 $(".prev-page").click(function(event) {
-	pageIndex--;
-	getData(userLastQuery[0], searchResultsRender);
+  if (state.pageIndex===1){
+    return;
+  } else {
+    state.pageIndex--;
+    getData(getLastQuery(state), searchResultsRender, state.previousToken);
+  }
+
 });
 $(".next-page").click(function(event){
-	pageIndex++;
-	getData(userLastQuery[0], searchResultsRender);
+	state.pageIndex++;
+	getData(getLastQuery(state), searchResultsRender, state.nextToken);
+  console.log(state.nextToken);
 });
 
 //event listeners
